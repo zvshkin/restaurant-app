@@ -18,3 +18,31 @@ export const createProduct = async (product) => {
   if (error) throw error;
   return data;
 };
+
+export const updateProduct = async (id, updates) => {
+  const { data, error } = await supabase
+    .from('products')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+};
+
+export const deleteProduct = async (id) => {
+  const { error } = await supabase
+    .from('products')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    if (error.code === '23503') {
+      throw new Error(
+        'Нельзя удалить продукт — он используется в рецептах блюд. ' +
+        'Сначала удалите его из состава всех блюд.'
+      );
+    }
+    throw error;
+  }
+};
