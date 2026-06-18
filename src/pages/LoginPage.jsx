@@ -2,61 +2,70 @@ import { useState } from 'react';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Box, Paper, Typography, TextField, Button,
-  InputAdornment, IconButton, Alert, CircularProgress, Link,
+  InputAdornment, IconButton, CircularProgress, Link,
 } from '@mui/material';
-import Visibility from '@mui/icons-material/Visibility';
-import VisibilityOff from '@mui/icons-material/VisibilityOff';
-import Restaurant from '@mui/icons-material/Restaurant';
-import { useAuth } from '../contexts/AuthContext';
+import { Visibility, VisibilityOff, Restaurant } from '@mui/icons-material';
+import { useAuth }         from '../contexts/AuthContext';
+import { useNotification } from '../contexts/NotificationContext';
 
 export default function LoginPage() {
   const { signIn } = useAuth();
   const navigate   = useNavigate();
+  const notify     = useNotification();
 
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData]       = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [error,   setError]   = useState('');
-  const [loading, setLoading] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState({});
+  const [loading, setLoading]         = useState(false);
 
-  const handleChange = (e) =>
-    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    if (fieldErrors[name]) setFieldErrors(prev => ({ ...prev, [name]: '' }));
+  };
 
   const validate = () => {
-    if (!formData.email.includes('@'))   return 'Введите корректный email';
-    if (formData.password.length < 6)    return 'Пароль — минимум 6 символов';
-    return null;
+    const errors = {};
+    if (!formData.email.includes('@'))  errors.email    = 'Введите корректный email';
+    if (formData.password.length < 6)   errors.password = 'Пароль — минимум 6 символов';
+    return errors;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const validationError = validate();
-    if (validationError) { setError(validationError); return; }
+
+    const errors = validate();
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      return;
+    }
 
     setLoading(true);
-    setError('');
     try {
       await signIn(formData);
       navigate('/dashboard');
     } catch (err) {
-      setError(err.message === 'Invalid login credentials'
+      const message = err.message === 'Invalid login credentials'
         ? 'Неверный email или пароль'
-        : err.message);
+        : err.message;
+      notify.error(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <Box sx={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      bgcolor: 'background.default',
-      p: 2,
-    }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: 'background.default',
+        p: 2,
+      }}
+    >
       <Paper sx={{ p: 4, width: '100%', maxWidth: 420 }}>
-        {/* Логотип */}
         <Box sx={{ textAlign: 'center', mb: 3 }}>
           <Restaurant sx={{ fontSize: 48, color: 'primary.main' }} />
           <Typography variant="h5" sx={{ mt: 1 }}>
@@ -67,12 +76,6 @@ export default function LoginPage() {
           </Typography>
         </Box>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-
         <Box component="form" onSubmit={handleSubmit} noValidate>
           <TextField
             name="email"
@@ -80,17 +83,22 @@ export default function LoginPage() {
             type="email"
             value={formData.email}
             onChange={handleChange}
+            error={!!fieldErrors.email}
+            helperText={fieldErrors.email}
             fullWidth
             required
             sx={{ mb: 2 }}
             autoComplete="email"
           />
+
           <TextField
             name="password"
             label="Пароль"
             type={showPassword ? 'text' : 'password'}
             value={formData.password}
             onChange={handleChange}
+            error={!!fieldErrors.password}
+            helperText={fieldErrors.password}
             fullWidth
             required
             sx={{ mb: 3 }}
@@ -99,7 +107,11 @@ export default function LoginPage() {
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowPassword(v => !v)} edge="end">
+                    <IconButton
+                      onClick={() => setShowPassword(v => !v)}
+                      edge="end"
+                      aria-label={showPassword ? 'Скрыть пароль' : 'Показать пароль'}
+                    >
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
