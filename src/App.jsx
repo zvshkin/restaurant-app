@@ -7,6 +7,7 @@ import AccessDeniedPage  from './pages/AccessDeniedPage';
 import DashboardPage     from './pages/DashboardPage';
 import InventoryPage     from './pages/InventoryPage';
 import MenuPage          from './pages/MenuPage';
+import UsersPage         from './pages/admin/UsersPage';
 
 export default function App() {
   return (
@@ -26,16 +27,8 @@ export default function App() {
 
       <Route element={<PrivateRoute allowedRoles={['admin']} />}>
         <Route element={<AppLayout />}>
-          <Route
-            path="/admin"
-            element={
-              <Navigate to="/admin/users" replace />
-            }
-          />
-          <Route
-            path="/admin/users"
-            element={<DashboardPage />}
-          />
+          <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
+          <Route path="/admin/users" element={<UsersPage />} />
         </Route>
       </Route>
 
