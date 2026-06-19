@@ -1,5 +1,5 @@
 <div align="center">
-  
+
 # 🍽️ Restaurant Manager
 
 **Веб-приложение для управления рестораном**
@@ -9,8 +9,12 @@
 [![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20PostgreSQL-3ECF8E?style=flat-square&logo=supabase&logoColor=white)](https://supabase.com/)
 [![MUI](https://img.shields.io/badge/Material_UI-5-007FFF?style=flat-square&logo=mui&logoColor=white)](https://mui.com/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?style=flat-square&logo=docker&logoColor=white)](https://www.docker.com/)
-[![Status](https://img.shields.io/badge/Статус-v0.1.0_в_разработке-orange?style=flat-square)]()
+[![Status](https://img.shields.io/badge/Статус-v0.2.0_в_разработке-orange?style=flat-square)]()
+
 <br/>
+
+*Система учёта склада, управления меню и авторизации персонала ресторана.*
+*Архитектура заложена под ролевую модель и расширенный функционал.*
 
 ---
 
@@ -28,30 +32,36 @@
 
 ## 🎯 О проекте
 
-**Restaurant Manager** — внутренняя система для автоматизации ресторана. Приложение строится поэтапно: в текущей версии реализована авторизация, управлением складом и меню.
+**Restaurant Manager** — внутренняя система для автоматизации ресторана. Приложение строится поэтапно: в текущей версии реализована авторизация, управлением продуктами/блюдами.
 
 ---
 
 ## ✅ Текущий функционал
 
-### Реализовано в `v0.1.0`
+### Реализовано в `v0.2.0`
 
 | Модуль | Что работает |
 |---|---|
 | 🔐 **Авторизация** | Регистрация, вход, выход. Сессия через Supabase Auth |
 | 🛡️ **Защита роутов** | `PrivateRoute` с заглушкой под ролевую проверку |
-| 🏗️ **Layout** | Адаптивный Sidebar + AppBar, мобильное меню |
-| 📦 **Склад** | Список продуктов, текущий остаток, статус запасов |
-| 🚚 **Поставки** | Модальное окно добавления поставки, автообновление остатка |
-| 🍜 **Меню** | Карточки блюд с ценой, описанием и составом ингредиентов |
-| 🗄️ **БД** | Полная схема с триггерами, RLS-политиками, связями |
+| 🔔 **Уведомления** | Глобальная toast-система: success / error / warning / info, до 3 одновременно, автозакрытие |
+| 🏗️ **Layout** | Адаптивный Sidebar + AppBar, мобильное меню-бургер |
+| 📦 **Склад — просмотр** | Таблица продуктов с остатком и статусом «Мало» / «ОК» |
+| ➕ **Склад — CRUD** | Создание, редактирование и удаление продуктов |
+| 🚚 **Поставки** | Добавление поставки с автообновлением остатка (триггер БД) |
+| 🍜 **Меню — просмотр** | Карточки блюд с ценой, категорией, описанием и составом |
+| ✏️ **Меню — CRUD** | Создание, редактирование и удаление блюд |
+| 🧪 **Конструктор рецептов** | Динамическое добавление ингредиентов с защитой от дублей и автоопределением единиц |
+| 🗄️ **БД** | Полная схема с триггерами, RLS-политиками, каскадными удалениями |
 
-### В разработке / заглушки
+### В разработке / следующий этап
 
-- Страница Dashboard (сводная статистика)
-- Управление блюдами из интерфейса (CRUD)
-- Создание/редактирование продуктов
-- Ролевая модель (разные права для `chef` и `client`)
+- Система ролей `admin` / `chef` / `client` с реальным разграничением прав в UI
+- Админ-панель: управление пользователями, выдача ролей
+- Профили пользователей с редактируемыми полями
+- Расширенные карточки продуктов: категории, условия хранения, срок годности
+- КБЖУ и теги для блюд, фильтры на странице меню
+- Заявки на поставку от поваров с подтверждением администратора
 
 ---
 
@@ -76,29 +86,25 @@ auth.users  (Supabase встроенная)
      │ триггер on_auth_user_created
      ▼
 profiles ── id, email, full_name, role ('admin' | 'chef' | 'client')
-     │
-     │
+
 products ── id, name, unit, quantity, min_stock
      │  ▲
      │  │ триггер: supplies → quantity += новая поставка
      │  │
 supplies ── id, product_id, quantity, price_per_unit, supplier, arrived_at
-     │
-     │  M:N
-     ▼
+
 dishes ◄──── dish_ingredients ────► products
              (dish_id, product_id, quantity_per_serving)
+             ON DELETE CASCADE на dish_id
 ```
-
-### Таблицы
 
 | Таблица | Описание |
 |---|---|
 | `profiles` | Профили пользователей, роли |
 | `products` | Ингредиенты / товары на складе |
 | `supplies` | История поставок |
-| `dishes` | Блюда в меню |
-| `dish_ingredients` | Рецепты: сколько какого продукта в блюде |
+| `dishes` | Блюда в меню с категорией и флагом активности |
+| `dish_ingredients` | Рецепты: количество каждого продукта на порцию |
 
 ---
 
@@ -108,29 +114,31 @@ dishes ◄──── dish_ingredients ────► products
 restaurant-app/
 │
 ├── src/
-│   ├── api/                    # Запросы к Supabase
-│   │   ├── supabaseClient.js   # Инициализация клиента
-│   │   ├── products.js         # CRUD продуктов
-│   │   ├── supplies.js         # CRUD поставок
-│   │   └── dishes.js           # CRUD блюд
+│   ├── api/
+│   │   ├── supabaseClient.js        # Инициализация клиента
+│   │   ├── products.js              # CRUD продуктов
+│   │   ├── supplies.js              # CRUD поставок
+│   │   └── dishes.js                # CRUD блюд + рецептов
 │   │
 │   ├── contexts/
-│   │   └── AuthContext.jsx     # Сессия, user, profile, role
+│   │   ├── AuthContext.jsx          # Сессия, user, profile, role
+│   │   └── NotificationContext.jsx  # Глобальные toast-уведомления
 │   │
 │   ├── components/
 │   │   ├── common/
-│   │   │   ├── PrivateRoute.jsx
-│   │   │   └── LoadingScreen.jsx
+│   │   │   ├── PrivateRoute.jsx         # Защита роутов (+ заглушка ролей)
+│   │   │   ├── LoadingScreen.jsx
+│   │   │   └── DeleteConfirmDialog.jsx  # Переиспользуемый диалог удаления
 │   │   ├── layout/
 │   │   │   ├── AppLayout.jsx
 │   │   │   ├── Sidebar.jsx
 │   │   │   └── TopBar.jsx
 │   │   ├── inventory/
-│   │   │   ├── ProductsTable.jsx
-│   │   │   └── AddSupplyModal.jsx
+│   │   │   ├── AddSupplyModal.jsx    # Модалка добавления поставки
+│   │   │   └── ProductFormModal.jsx  # Модалка создания/редактирования продукта
 │   │   └── menu/
-│   │       ├── DishCard.jsx
-│   │       └── DishList.jsx
+│   │       ├── DishCard.jsx          # Карточка блюда с action-кнопками
+│   │       └── DishFormModal.jsx     # Конструктор блюда с составом
 │   │
 │   ├── pages/
 │   │   ├── LoginPage.jsx
@@ -143,16 +151,18 @@ restaurant-app/
 │   │   └── useAuth.js
 │   │
 │   ├── theme/
-│   │   └── theme.js            # MUI тема (цвета, шрифты, радиусы)
+│   │   └── theme.js
 │   │
-│   ├── App.jsx                 # Роутинг
-│   └── main.jsx                # Точка входа
+│   ├── App.jsx
+│   └── main.jsx
 │
-├── .env                        # 🔒 Локальные секреты (не в git)
-├── .env.example                # Шаблон переменных окружения
+├── .env                             # 🔒 Локальные секреты (не в git)
+├── .env.example
 ├── .dockerignore
-├── Dockerfile                  # Multi-stage: dev / production (Nginx)
-├── docker-compose.yml          # Профили: dev / prod
+├── Dockerfile                       # Multi-stage: dev / production (Nginx)
+├── docker-compose.yml               # Профили: dev / prod
+├── CHANGELOG.md
+├── ROADMAP.md
 └── vite.config.js
 ```
 
@@ -182,10 +192,8 @@ npm install
 ### 3. Настроить Supabase
 
 1. Создайте проект на [supabase.com](https://supabase.com/)
-2. Перейдите в **Settings → API** и скопируйте:
-   - **Project URL**
-   - **anon public** ключ
-3. В **SQL Editor** выполните скрипты из [`docs/database.sql`](docs/database.sql) — по порядку, блок за блоком
+2. Перейдите в **Settings → API** и скопируйте **Project URL** и **anon public** ключ
+3. В **SQL Editor** выполните скрипты из [`docs/database.sql`](docs/database.sql) — по порядку
 4. В **Authentication → Email** отключите *"Confirm email"* (для разработки)
 
 ### 4. Создать `.env`
@@ -201,49 +209,31 @@ cp .env.example .env
 npm run dev
 ```
 
-Откройте **http://localhost:5173** — приложение работает.
+Откройте **http://localhost:5173**
 
 ---
 
 ## 🐳 Запуск через Docker
 
-### Разработка (с hot-reload)
-
 ```bash
+# Разработка (hot-reload)
 docker compose --profile dev up --build
-```
+# → http://localhost:5173
 
-→ **http://localhost:5173**
-
-### Production (Nginx)
-
-```bash
+# Production (Nginx)
 docker compose --profile prod up --build
-```
+# → http://localhost
 
-→ **http://localhost**
-
-### Полезные команды
-
-```bash
-# Посмотреть логи
-docker compose logs -f app-dev
-
-# Зайти в контейнер
-docker compose exec app-dev sh
-
-# Остановить
-docker compose --profile dev down
-
-# Пересобрать без кеша
-docker compose --profile dev build --no-cache
+# Полезные команды
+docker compose logs -f app-dev          # логи
+docker compose exec app-dev sh          # зайти в контейнер
+docker compose --profile dev down       # остановить
+docker compose --profile dev build --no-cache  # пересобрать без кеша
 ```
 
 ---
 
 ## 🔑 Переменные окружения
-
-Создайте файл `.env` в корне проекта на основе `.env.example`:
 
 ```env
 # Supabase — берётся из: Dashboard → Settings → API
@@ -251,14 +241,13 @@ VITE_SUPABASE_URL=https://YOUR_PROJECT_ID.supabase.co
 VITE_SUPABASE_ANON_KEY=your_anon_key_here
 ```
 
-> ⚠️ Файл `.env` добавлен в `.gitignore` — никогда не коммитьте реальные ключи.  
-> Для передачи ключей напарнику используйте защищённый канал (не git, не чат).
+> ⚠️ Файл `.env` добавлен в `.gitignore` — никогда не коммитьте реальные ключи.
 
 ---
 
 <div align="center">
 
-*Restaurant Manager — v0.1.0*  
+*Restaurant Manager — v0.2.0*  
 *Проект в активной разработке. Структура и API могут меняться.*
 
 </div>
