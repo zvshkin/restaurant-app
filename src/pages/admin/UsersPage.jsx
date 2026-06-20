@@ -14,15 +14,21 @@ import { useAuth }                         from '../../contexts/AuthContext';
 import { useNotification }                 from '../../contexts/NotificationContext';
 
 const ROLE_CONFIG = {
-  admin:  { label: 'Администратор', color: 'primary' },
-  chef:   { label: 'Повар',         color: 'warning' },
-  client: { label: 'Клиент',        color: 'success' },
+  director: { label: 'Директор',       color: 'secondary' },
+  admin:    { label: 'Администратор',  color: 'primary'   },
+  chef:     { label: 'Повар',          color: 'warning'   },
+  client:   { label: 'Клиент',         color: 'success'   },
 };
 
-const ROLE_OPTIONS = [
+const DIRECTOR_ASSIGNABLE = [
   { value: 'admin',  label: 'Администратор' },
   { value: 'chef',   label: 'Повар'         },
   { value: 'client', label: 'Клиент'        },
+];
+
+const ADMIN_ASSIGNABLE = [
+  { value: 'chef',   label: 'Повар'  },
+  { value: 'client', label: 'Клиент' },
 ];
 
 const getInitials = (fullName, email) => {
@@ -45,12 +51,14 @@ const formatDate = (iso) =>
   });
 
 export default function UsersPage() {
-  const { user }  = useAuth();
-  const notify    = useNotification();
+  const { user, role: myRole } = useAuth();
+  const notify = useNotification();
 
   const [profiles,  setProfiles]  = useState([]);
   const [loading,   setLoading]   = useState(true);
   const [updatingId, setUpdatingId] = useState(null);
+
+  const iAmDirector = myRole === 'director';
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -65,12 +73,15 @@ export default function UsersPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleRoleChange = async (profileId, newRole) => {
-    if (profileId === user?.id) {
-      notify.warning('Нельзя изменить собственную роль');
-      return;
-    }
+  const canEditRow = (targetProfile) => {
+    if (targetProfile.id === user?.id) return false;
+    if (iAmDirector)                   return true;
+    return ['chef', 'client'].includes(targetProfile.role);
+  };
 
+  const assignableRoles = iAmDirector ? DIRECTOR_ASSIGNABLE : ADMIN_ASSIGNABLE;
+
+  const handleRoleChange = async (profileId, newRole) => {
     setUpdatingId(profileId);
     try {
       await updateProfileRole(profileId, newRole);
@@ -129,10 +140,18 @@ export default function UsersPage() {
                 </TableCell>
               </TableRow>
             ) : profiles.map(profile => {
-              const isSelf      = profile.id === user?.id;
-              const isUpdating  = updatingId === profile.id;
-              const roleConf    = ROLE_CONFIG[profile.role] ?? { label: profile.role, color: 'default' };
-              const initials    = getInitials(profile.full_name, profile.email);
+              const isSelf     = profile.id === user?.id;
+              const isUpdating = updatingId === profile.id;
+              const roleConf   = ROLE_CONFIG[profile.role] ?? { label: profile.role, color: 'default' };
+              const initials   = getInitials(profile.full_name, profile.email);
+
+              const isDirectorRow = profile.role === 'director';
+              const editable       = !isDirectorRow && canEditRow(profile);
+
+              let lockReason = '';
+              if (isSelf)               lockReason = 'Нельзя изменить собственную роль';
+              else if (isDirectorRow)   lockReason = 'Роль директора назначается только через базу данных';
+              else if (!editable)       lockReason = 'Недостаточно прав для изменения этой роли';
 
               return (
                 <TableRow
@@ -187,35 +206,31 @@ export default function UsersPage() {
                   </TableCell>
 
                   <TableCell align="center">
-                    <Tooltip
-                      title={isSelf ? 'Нельзя изменить собственную роль' : ''}
-                      placement="left"
-                    >
-                      <span>
-                        <FormControl size="small" sx={{ minWidth: 160 }} disabled={isSelf || isUpdating}>
-                          <Select
-                            value={profile.role}
-                            onChange={e => handleRoleChange(profile.id, e.target.value)}
-                            IconComponent={
-                              isUpdating
-                                ? () => <CircularProgress size={16} sx={{ mr: 1 }} />
-                                : undefined
-                            }
-                            sx={{
-                              '& .MuiOutlinedInput-notchedOutline': {
-                                borderColor: isSelf ? 'divider' : undefined,
-                              },
-                            }}
-                          >
-                            {ROLE_OPTIONS.map(opt => (
-                              <MenuItem key={opt.value} value={opt.value}>
-                                {opt.label}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      </span>
-                    </Tooltip>
+                    {!editable ? (
+                      <Tooltip title={lockReason} placement="left">
+                        <Typography variant="body2" color="text.disabled">
+                          —
+                        </Typography>
+                      </Tooltip>
+                    ) : (
+                      <FormControl size="small" sx={{ minWidth: 160 }} disabled={isUpdating}>
+                        <Select
+                          value={profile.role}
+                          onChange={e => handleRoleChange(profile.id, e.target.value)}
+                          IconComponent={
+                            isUpdating
+                              ? () => <CircularProgress size={16} sx={{ mr: 1 }} />
+                              : undefined
+                          }
+                        >
+                          {assignableRoles.map(opt => (
+                            <MenuItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
                   </TableCell>
                 </TableRow>
               );
@@ -223,6 +238,13 @@ export default function UsersPage() {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {!iAmDirector && !loading && profiles.length > 0 && (
+        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 2 }}>
+          Администратор может менять роли только сотрудников с ролью «Повар» и «Клиент».
+          Роли «Администратор» и «Директор» назначаются директором.
+        </Typography>
+      )}
     </Box>
   );
 }

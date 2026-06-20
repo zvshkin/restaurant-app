@@ -14,19 +14,19 @@ const NAV_ITEMS = [
     label: 'Панель',
     path:  '/dashboard',
     icon:  <Dashboard />,
-    roles: ['admin', 'chef'],
+    roles: ['director', 'admin', 'chef'],
   },
   {
     label: 'Склад',
     path:  '/dashboard/inventory',
     icon:  <Inventory2 />,
-    roles: ['admin', 'chef'],
+    roles: ['director', 'admin', 'chef'],
   },
   {
     label: 'Меню',
     path:  '/dashboard/menu',
     icon:  <RestaurantMenu />,
-    roles: ['admin', 'chef'],
+    roles: ['director', 'admin', 'chef'],
   },
 ];
 
@@ -35,14 +35,15 @@ const ADMIN_ITEMS = [
     label: 'Пользователи',
     path:  '/admin/users',
     icon:  <AdminPanelSettings />,
-    roles: ['admin'],
+    roles: ['director', 'admin'],
   },
 ];
 
 const ROLE_LABELS = {
-  admin:  { label: 'Администратор', color: 'primary' },
-  chef:   { label: 'Повар',         color: 'warning' },
-  client: { label: 'Клиент',        color: 'success' },
+  director: { label: 'Директор',      color: 'secondary' },
+  admin:    { label: 'Администратор', color: 'primary'   },
+  chef:     { label: 'Повар',         color: 'warning'   },
+  client:   { label: 'Клиент',        color: 'success'   },
 };
 
 function SidebarContent() {

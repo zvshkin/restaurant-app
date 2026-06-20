@@ -17,7 +17,7 @@ export default function App() {
       <Route path="/register"       element={<RegisterPage />} />
       <Route path="/access-denied"  element={<AccessDeniedPage />} />
 
-      <Route element={<PrivateRoute allowedRoles={['admin', 'chef']} />}>
+      <Route element={<PrivateRoute allowedRoles={['director', 'admin', 'chef']} />}>
         <Route element={<AppLayout />}>
           <Route path="/dashboard"           element={<DashboardPage />} />
           <Route path="/dashboard/inventory" element={<InventoryPage />} />
@@ -25,7 +25,7 @@ export default function App() {
         </Route>
       </Route>
 
-      <Route element={<PrivateRoute allowedRoles={['admin']} />}>
+      <Route element={<PrivateRoute allowedRoles={['director', 'admin']} />}>
         <Route element={<AppLayout />}>
           <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
           <Route path="/admin/users" element={<UsersPage />} />
