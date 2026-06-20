@@ -8,6 +8,7 @@ import DashboardPage     from './pages/DashboardPage';
 import InventoryPage     from './pages/InventoryPage';
 import MenuPage          from './pages/MenuPage';
 import UsersPage         from './pages/admin/UsersPage';
+import ProfilePage       from './pages/ProfilePage';
 
 export default function App() {
   return (
@@ -29,6 +30,13 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
           <Route path="/admin/users" element={<UsersPage />} />
+          <Route path="/admin/users/:id/profile" element={<ProfilePage />} />
+        </Route>
+      </Route>
+
+      <Route element={<PrivateRoute />}>
+        <Route element={<AppLayout />}>
+          <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
 

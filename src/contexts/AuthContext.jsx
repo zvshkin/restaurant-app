@@ -75,20 +75,30 @@ export function AuthProvider({ children }) {
     if (error) throw error;
   };
 
-  const isAdmin = profile?.role === 'admin';
-  const isChef  = profile?.role === 'chef';
-  const role    = profile?.role ?? null;
+  const refreshProfile = useCallback(async () => {
+    if (!user) return null;
+    const prof = await fetchProfile(user.id);
+    setProfile(prof);
+    return prof;
+  }, [user, fetchProfile]);
+
+  const isDirector = profile?.role === 'director';
+  const isAdmin     = profile?.role === 'admin';
+  const isChef      = profile?.role === 'chef';
+  const role        = profile?.role ?? null;
 
   const value = {
     user,
     profile,
     loading,
+    isDirector,
     isAdmin,
     isChef,
     role,
     signIn,
     signUp,
     signOut,
+    refreshProfile,
   };
 
   return (

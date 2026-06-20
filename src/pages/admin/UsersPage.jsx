@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Paper,
   Table, TableBody, TableCell, TableContainer,
@@ -52,7 +53,8 @@ const formatDate = (iso) =>
 
 export default function UsersPage() {
   const { user, role: myRole } = useAuth();
-  const notify = useNotification();
+  const notify   = useNotification();
+  const navigate = useNavigate();
 
   const [profiles,  setProfiles]  = useState([]);
   const [loading,   setLoading]   = useState(true);
@@ -160,7 +162,12 @@ export default function UsersPage() {
                   sx={isSelf ? { bgcolor: 'action.hover' } : undefined}
                 >
                   <TableCell>
-                    <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                    <Stack
+                      direction="row"
+                      spacing={1.5}
+                      onClick={() => navigate(isSelf ? '/profile' : `/admin/users/${profile.id}/profile`)}
+                      sx={{ cursor: 'pointer', alignItems: 'center', width: 'fit-content' }}
+                    >
                       <Avatar
                         sx={{
                           width: 36,
@@ -172,7 +179,11 @@ export default function UsersPage() {
                         {initials}
                       </Avatar>
                       <Box>
-                        <Typography variant="body2" fontWeight={600}>
+                        <Typography
+                          variant="body2"
+                          fontWeight={600}
+                          sx={{ '&:hover': { textDecoration: 'underline' } }}
+                        >
                           {profile.full_name || '—'}
                         </Typography>
                         {isSelf && (

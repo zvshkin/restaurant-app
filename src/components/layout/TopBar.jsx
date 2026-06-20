@@ -1,9 +1,8 @@
 import {
   AppBar, Toolbar, IconButton, Typography,
-  Avatar, Menu, MenuItem, Box,
+  Avatar, Menu, MenuItem, Box, Divider, ListItemIcon,
 } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import Logout from '@mui/icons-material/Logout';
+import { Menu as MenuIcon, Logout, PersonOutlined } from '@mui/icons-material';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -13,9 +12,17 @@ export default function TopBar({ onMenuClick }) {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
 
+  const closeMenu = () => setAnchorEl(null);
+
   const handleLogout = async () => {
+    closeMenu();
     await signOut();
     navigate('/login');
+  };
+
+  const handleProfileClick = () => {
+    closeMenu();
+    navigate('/profile');
   };
 
   const initials = profile?.full_name
@@ -39,10 +46,19 @@ export default function TopBar({ onMenuClick }) {
         >
           {initials}
         </Avatar>
-        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)}
-          onClose={() => setAnchorEl(null)}>
+        <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={closeMenu}>
+          <MenuItem onClick={handleProfileClick}>
+            <ListItemIcon>
+              <PersonOutlined fontSize="small" />
+            </ListItemIcon>
+            Мой профиль
+          </MenuItem>
+          <Divider />
           <MenuItem onClick={handleLogout}>
-            <Logout fontSize="small" sx={{ mr: 1 }} /> Выйти
+            <ListItemIcon>
+              <Logout fontSize="small" />
+            </ListItemIcon>
+            Выйти
           </MenuItem>
         </Menu>
       </Toolbar>
