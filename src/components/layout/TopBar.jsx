@@ -41,6 +41,7 @@ export default function TopBar({ onMenuClick }) {
           {profile?.full_name ?? profile?.email}
         </Typography>
         <Avatar
+          src={profile?.avatar_url || undefined}
           sx={{ bgcolor: 'primary.main', cursor: 'pointer', width: 36, height: 36 }}
           onClick={e => setAnchorEl(e.currentTarget)}
         >

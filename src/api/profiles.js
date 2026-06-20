@@ -34,7 +34,7 @@ export const updateProfileRole = async (id, role) => {
 };
 
 export const updateProfile = async (id, updates) => {
-  const allowedFields = ['full_name', 'phone', 'bio', 'avatar_url'];
+  const allowedFields = ['full_name', 'phone', 'bio', 'avatar_url', 'birth_date'];
 
   const safeUpdates = Object.fromEntries(
     Object.entries(updates).filter(([key]) => allowedFields.includes(key))
@@ -47,6 +47,12 @@ export const updateProfile = async (id, updates) => {
     .select()
     .single();
 
+  if (error) throw error;
+  return data;
+};
+
+export const updateEmail = async (newEmail) => {
+  const { data, error } = await supabase.auth.updateUser({ email: newEmail });
   if (error) throw error;
   return data;
 };

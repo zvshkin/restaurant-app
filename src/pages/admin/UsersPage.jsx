@@ -169,6 +169,7 @@ export default function UsersPage() {
                       sx={{ cursor: 'pointer', alignItems: 'center', width: 'fit-content' }}
                     >
                       <Avatar
+                        src={profile.avatar_url || undefined}
                         sx={{
                           width: 36,
                           height: 36,
