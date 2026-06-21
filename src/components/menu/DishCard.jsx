@@ -3,10 +3,17 @@ import {
   Typography, Chip, Box, Divider,
   IconButton, Tooltip, Stack,
 } from '@mui/material';
-import { RestaurantMenu, EditOutlined, DeleteOutlined } from '@mui/icons-material';
+import {
+  RestaurantMenu, EditOutlined, DeleteOutlined,
+  AccessTime,
+} from '@mui/icons-material';
+
 
 export default function DishCard({ dish, onEdit, onDelete }) {
   const hasActions = onEdit || onDelete;
+
+  const hasNutrition = dish.calories != null || dish.proteins != null
+    || dish.fats != null || dish.carbs != null;
 
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -36,11 +43,7 @@ export default function DishCard({ dish, onEdit, onDelete }) {
         <Stack
           direction="row"
           spacing={0.5}
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-          }}
+          sx={{ position: 'absolute', top: 8, right: 8 }}
         >
           {onEdit && (
             <Tooltip title="Редактировать">
@@ -76,6 +79,23 @@ export default function DishCard({ dish, onEdit, onDelete }) {
         </Stack>
       )}
 
+      {dish.cook_time_minutes && (
+        <Chip
+          icon={<AccessTime sx={{ fontSize: '16px !important' }} />}
+          label={`${dish.cook_time_minutes} мин`}
+          size="small"
+          sx={{
+            position: 'absolute',
+            top: 8,
+            left: 8,
+            bgcolor: 'rgba(0,0,0,0.65)',
+            color: '#fff',
+            backdropFilter: 'blur(4px)',
+            '& .MuiChip-icon': { color: '#fff' },
+          }}
+        />
+      )}
+
       <CardContent sx={{ flexGrow: 1 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
           <Typography variant="h6" sx={{ lineHeight: 1.3 }}>
@@ -95,6 +115,21 @@ export default function DishCard({ dish, onEdit, onDelete }) {
           </Typography>
         )}
 
+        {dish.tags?.length > 0 && (
+          <Box sx={{ mt: 1, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+            {dish.tags.map(tag => (
+              <Chip
+                key={tag}
+                label={tag}
+                size="small"
+                color="secondary"
+                variant="outlined"
+                sx={{ height: 22, fontSize: '0.7rem' }}
+              />
+            ))}
+          </Box>
+        )}
+
         {dish.description && (
           <Typography
             variant="body2"
@@ -103,6 +138,26 @@ export default function DishCard({ dish, onEdit, onDelete }) {
           >
             {dish.description}
           </Typography>
+        )}
+
+        {hasNutrition && (
+          <Box sx={{ mt: 1.5, display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+            {dish.calories != null && (
+              <Chip label={`🔥 ${dish.calories} ккал`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+            )}
+            {dish.proteins != null && (
+              <Chip label={`🥩 ${dish.proteins}г белков`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+            )}
+            {dish.fats != null && (
+              <Chip label={`🧈 ${dish.fats}г жиров`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+            )}
+            {dish.carbs != null && (
+              <Chip label={`🍞 ${dish.carbs}г углеводов`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+            )}
+            {dish.weight_grams != null && (
+              <Chip label={`⚖️ ${dish.weight_grams}г`} size="small" variant="outlined" sx={{ height: 22, fontSize: '0.7rem' }} />
+            )}
+          </Box>
         )}
 
         {dish.dish_ingredients?.length > 0 && (
