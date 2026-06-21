@@ -1,20 +1,24 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box, Typography, Button, Paper,
-  Table, TableBody, TableCell, TableContainer,
-  TableHead, TableRow, Chip, IconButton, Tooltip,
-  Stack,
+  TextField, MenuItem, InputAdornment,
+  FormControlLabel, Switch, Stack,
 } from '@mui/material';
-import {
-  Add, AddCircleOutlined, Warning,
-  EditOutlined, DeleteOutlined,
-} from '@mui/icons-material';
+import { Add, AddCircleOutlined, Search } from '@mui/icons-material';
 
 import { getProducts, deleteProduct } from '../api/products';
 import { useNotification }            from '../contexts/NotificationContext';
 import AddSupplyModal                 from '../components/inventory/AddSupplyModal';
 import ProductFormModal               from '../components/inventory/ProductFormModal';
+import ProductsTable                  from '../components/inventory/ProductsTable';
 import DeleteConfirmDialog            from '../components/common/DeleteConfirmDialog';
+
+const CATEGORIES = [
+  'мясо', 'рыба', 'молочное', 'овощи',
+  'фрукты', 'крупы', 'специи', 'напитки', 'прочее',
+];
+
+const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 
 export default function InventoryPage() {
   const notify = useNotification();
@@ -22,11 +26,15 @@ export default function InventoryPage() {
   const [products, setProducts] = useState([]);
   const [loading,  setLoading]  = useState(true);
 
-  const [supplyOpen,       setSupplyOpen]       = useState(false);
-  const [supplyProduct,    setSupplyProduct]     = useState(null);
+  const [search,      setSearch]      = useState('');
+  const [category,    setCategory]    = useState('all');
+  const [onlyLowStock, setOnlyLowStock] = useState(false);
 
-  const [productFormOpen,    setProductFormOpen]    = useState(false);
-  const [productFormTarget,  setProductFormTarget]  = useState(null);
+  const [supplyOpen,    setSupplyOpen]    = useState(false);
+  const [supplyProduct, setSupplyProduct] = useState(null);
+
+  const [productFormOpen,   setProductFormOpen]   = useState(false);
+  const [productFormTarget, setProductFormTarget] = useState(null);
 
   const [deleteOpen,    setDeleteOpen]    = useState(false);
   const [deleteTarget,  setDeleteTarget]  = useState(null);
@@ -44,6 +52,17 @@ export default function InventoryPage() {
   }, [notify]);
 
   useEffect(() => { load(); }, [load]);
+
+  const filteredProducts = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return products.filter(p => {
+      if (query && !p.name.toLowerCase().includes(query)) return false;
+      if (category !== 'all' && p.category !== category)  return false;
+      if (onlyLowStock && p.quantity > p.min_stock)        return false;
+      return true;
+    });
+  }, [products, search, category, onlyLowStock]);
 
   const openSupplyModal = (product = null) => {
     setSupplyProduct(product);
@@ -103,81 +122,66 @@ export default function InventoryPage() {
         </Stack>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow sx={{ bgcolor: 'background.default' }}>
-              <TableCell><b>Название</b></TableCell>
-              <TableCell><b>Описание</b></TableCell>
-              <TableCell align="center"><b>Ед. изм.</b></TableCell>
-              <TableCell align="right"><b>Остаток</b></TableCell>
-              <TableCell align="right"><b>Минимум</b></TableCell>
-              <TableCell align="center"><b>Статус</b></TableCell>
-              <TableCell align="center"><b>Действия</b></TableCell>
-            </TableRow>
-          </TableHead>
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ alignItems: { sm: 'center' } }}>
+          <TextField
+            placeholder="Поиск по названию..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            size="small"
+            sx={{ flex: 2, minWidth: 200 }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search fontSize="small" sx={{ color: 'text.disabled' }} />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
 
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                  Загрузка...
-                </TableCell>
-              </TableRow>
-            ) : products.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={7} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                  Продукты не найдены. Добавьте первый продукт.
-                </TableCell>
-              </TableRow>
-            ) : products.map(p => {
-              const isLow = p.quantity <= p.min_stock;
-              return (
-                <TableRow key={p.id} hover>
-                  <TableCell sx={{ fontWeight: 500 }}>{p.name}</TableCell>
-                  <TableCell sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
-                    {p.description || '—'}
-                  </TableCell>
-                  <TableCell align="center">{p.unit}</TableCell>
-                  <TableCell align="right">
-                    <b style={{ color: isLow ? '#D62839' : 'inherit' }}>
-                      {p.quantity} {p.unit}
-                    </b>
-                  </TableCell>
-                  <TableCell align="right">
-                    {p.min_stock} {p.unit}
-                  </TableCell>
-                  <TableCell align="center">
-                    {isLow
-                      ? <Chip icon={<Warning />} label="Мало"  color="error"   size="small" />
-                      : <Chip                    label="ОК"    color="success" size="small" />
-                    }
-                  </TableCell>
-                  <TableCell align="center">
-                    <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'center' }}>
-                      <Tooltip title="Добавить поставку">
-                        <IconButton size="small" color="primary" onClick={() => openSupplyModal(p)}>
-                          <AddCircleOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Редактировать">
-                        <IconButton size="small" color="default" onClick={() => openEditProduct(p)}>
-                          <EditOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Удалить">
-                        <IconButton size="small" color="error" onClick={() => openDeleteDialog(p)}>
-                          <DeleteOutlined fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-      </TableContainer>
+          <TextField
+            select
+            label="Категория"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            size="small"
+            sx={{ flex: 1, minWidth: 160 }}
+          >
+            <MenuItem value="all">Все категории</MenuItem>
+            {CATEGORIES.map(c => (
+              <MenuItem key={c} value={c}>{capitalize(c)}</MenuItem>
+            ))}
+          </TextField>
+
+          <FormControlLabel
+            control={
+              <Switch
+                checked={onlyLowStock}
+                onChange={(e) => setOnlyLowStock(e.target.checked)}
+                color="error"
+              />
+            }
+            label="Только с низким остатком"
+            sx={{ flexShrink: 0, whiteSpace: 'nowrap' }}
+          />
+        </Stack>
+      </Paper>
+
+      {(search || category !== 'all' || onlyLowStock) && !loading && (
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+          Показано {filteredProducts.length} из {products.length}
+        </Typography>
+      )}
+
+      <ProductsTable
+        products={filteredProducts}
+        loading={loading}
+        onAddSupply={openSupplyModal}
+        onEdit={openEditProduct}
+        onDelete={openDeleteDialog}
+      />
 
       <AddSupplyModal
         open={supplyOpen}
