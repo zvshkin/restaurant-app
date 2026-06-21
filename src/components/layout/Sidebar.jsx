@@ -6,6 +6,7 @@ import {
 import {
   Dashboard, Inventory2, RestaurantMenu,
   Restaurant, AdminPanelSettings,
+  AssignmentOutlined, ReceiptLongOutlined,
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -28,6 +29,12 @@ const NAV_ITEMS = [
     icon:  <RestaurantMenu />,
     roles: ['director', 'admin', 'chef'],
   },
+  {
+    label: 'Заявки на поставку',
+    path:  '/dashboard/supply-requests',
+    icon:  <AssignmentOutlined />,
+    roles: ['director', 'admin', 'chef'],
+  },
 ];
 
 const ADMIN_ITEMS = [
@@ -35,6 +42,12 @@ const ADMIN_ITEMS = [
     label: 'Пользователи',
     path:  '/admin/users',
     icon:  <AdminPanelSettings />,
+    roles: ['director', 'admin'],
+  },
+  {
+    label: 'История поставок',
+    path:  '/admin/supply-history',
+    icon:  <ReceiptLongOutlined />,
     roles: ['director', 'admin'],
   },
 ];

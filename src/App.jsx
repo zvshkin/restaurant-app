@@ -7,6 +7,8 @@ import AccessDeniedPage  from './pages/AccessDeniedPage';
 import DashboardPage     from './pages/DashboardPage';
 import InventoryPage     from './pages/InventoryPage';
 import MenuPage          from './pages/MenuPage';
+import SupplyRequestsPage from './pages/SupplyRequestsPage';
+import SupplyHistoryPage  from './pages/SupplyHistoryPage';
 import UsersPage         from './pages/admin/UsersPage';
 import ProfilePage       from './pages/ProfilePage';
 
@@ -20,9 +22,10 @@ export default function App() {
 
       <Route element={<PrivateRoute allowedRoles={['director', 'admin', 'chef']} />}>
         <Route element={<AppLayout />}>
-          <Route path="/dashboard"           element={<DashboardPage />} />
-          <Route path="/dashboard/inventory" element={<InventoryPage />} />
-          <Route path="/dashboard/menu"      element={<MenuPage />} />
+          <Route path="/dashboard"                element={<DashboardPage />} />
+          <Route path="/dashboard/inventory"      element={<InventoryPage />} />
+          <Route path="/dashboard/menu"           element={<MenuPage />} />
+          <Route path="/dashboard/supply-requests" element={<SupplyRequestsPage />} />
         </Route>
       </Route>
 
@@ -31,6 +34,7 @@ export default function App() {
           <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
           <Route path="/admin/users" element={<UsersPage />} />
           <Route path="/admin/users/:id/profile" element={<ProfilePage />} />
+          <Route path="/admin/supply-history" element={<SupplyHistoryPage />} />
         </Route>
       </Route>
 
