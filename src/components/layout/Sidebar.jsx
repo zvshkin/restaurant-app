@@ -24,10 +24,16 @@ const NAV_ITEMS = [
     roles: ['director', 'admin', 'chef'],
   },
   {
-    label: 'Меню',
+    label: 'Меню (управление)',
     path:  '/dashboard/menu',
     icon:  <RestaurantMenu />,
     roles: ['director', 'admin', 'chef'],
+  },
+  {
+    label: 'Меню',
+    path:  '/menu',
+    icon:  <RestaurantMenu />,
+    roles: ['client'],
   },
   {
     label: 'Заявки на поставку',

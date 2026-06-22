@@ -7,10 +7,12 @@ import AccessDeniedPage  from './pages/AccessDeniedPage';
 import DashboardPage     from './pages/DashboardPage';
 import InventoryPage     from './pages/InventoryPage';
 import MenuPage          from './pages/MenuPage';
+import ClientMenuPage    from './pages/client/ClientMenuPage';
 import SupplyRequestsPage from './pages/SupplyRequestsPage';
 import SupplyHistoryPage  from './pages/SupplyHistoryPage';
 import UsersPage         from './pages/admin/UsersPage';
 import ProfilePage       from './pages/ProfilePage';
+import RoleBasedRedirect from './components/common/RoleBasedRedirect';
 
 export default function App() {
   return (
@@ -38,14 +40,20 @@ export default function App() {
         </Route>
       </Route>
 
+      <Route element={<PrivateRoute allowedRoles={['client', 'director', 'admin', 'chef']} />}>
+        <Route element={<AppLayout />}>
+          <Route path="/menu" element={<ClientMenuPage />} />
+        </Route>
+      </Route>
+
       <Route element={<PrivateRoute />}>
         <Route element={<AppLayout />}>
           <Route path="/profile" element={<ProfilePage />} />
         </Route>
       </Route>
 
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/"  element={<RoleBasedRedirect />} />
+      <Route path="*"  element={<RoleBasedRedirect />} />
 
     </Routes>
   );

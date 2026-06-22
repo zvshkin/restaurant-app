@@ -7,16 +7,24 @@ import {
 import { Visibility, VisibilityOff, Restaurant } from '@mui/icons-material';
 import { useAuth }         from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
+import { getProfileById }  from '../api/profiles';
+
+const ROLE_HOME = {
+  director: '/dashboard',
+  admin:    '/dashboard',
+  chef:     '/dashboard',
+  client:   '/menu',
+};
 
 export default function LoginPage() {
   const { signIn } = useAuth();
   const navigate   = useNavigate();
   const notify     = useNotification();
 
-  const [formData, setFormData]       = useState({ email: '', password: '' });
+  const [formData, setFormData]         = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({});
-  const [loading, setLoading]         = useState(false);
+  const [fieldErrors, setFieldErrors]   = useState({});
+  const [loading, setLoading]           = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -42,8 +50,16 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await signIn(formData);
-      navigate('/dashboard');
+      const { session } = await signIn(formData);
+
+      let homeRoute = '/dashboard'; 
+      try {
+        const profile = await getProfileById(session.user.id);
+        homeRoute = ROLE_HOME[profile?.role] ?? '/dashboard';
+      } catch {
+      }
+
+      navigate(homeRoute);
     } catch (err) {
       const message = err.message === 'Invalid login credentials'
         ? 'Неверный email или пароль'
