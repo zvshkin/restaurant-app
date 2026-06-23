@@ -19,17 +19,20 @@ const ROLE_CONFIG = {
   admin:    { label: 'Администратор',  color: 'primary'   },
   chef:     { label: 'Повар',          color: 'warning'   },
   client:   { label: 'Клиент',         color: 'success'   },
+  guest:    { label: 'Гость',          color: 'default'   },
 };
 
 const DIRECTOR_ASSIGNABLE = [
   { value: 'admin',  label: 'Администратор' },
   { value: 'chef',   label: 'Повар'         },
   { value: 'client', label: 'Клиент'        },
+  { value: 'guest',  label: 'Гость'         },
 ];
 
 const ADMIN_ASSIGNABLE = [
   { value: 'chef',   label: 'Повар'  },
   { value: 'client', label: 'Клиент' },
+  { value: 'guest',  label: 'Гость'  },
 ];
 
 const getInitials = (fullName, email) => {
@@ -78,7 +81,7 @@ export default function UsersPage() {
   const canEditRow = (targetProfile) => {
     if (targetProfile.id === user?.id) return false;
     if (iAmDirector)                   return true;
-    return ['chef', 'client'].includes(targetProfile.role);
+    return ['chef', 'client', 'guest'].includes(targetProfile.role);
   };
 
   const assignableRoles = iAmDirector ? DIRECTOR_ASSIGNABLE : ADMIN_ASSIGNABLE;
