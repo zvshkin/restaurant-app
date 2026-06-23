@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Box } from '@mui/material';
-import Sidebar from './Sidebar';
-import TopBar  from './TopBar';
+import Sidebar    from './Sidebar';
+import TopBar     from './TopBar';
+import CartDrawer from '../client/CartDrawer';
 
 const DRAWER_WIDTH = 260;
 
 export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [cartOpen,   setCartOpen]   = useState(false);
+
   const toggle = () => setMobileOpen(v => !v);
 
   return (
@@ -23,11 +26,16 @@ export default function AppLayout() {
         flexDirection: 'column',
         ml: { sm: `${DRAWER_WIDTH}px` },
       }}>
-        <TopBar onMenuClick={toggle} />
+        <TopBar onMenuClick={toggle} onCartOpen={() => setCartOpen(true)} />
         <Box component="main" sx={{ flexGrow: 1, p: 3 }}>
           <Outlet />
         </Box>
       </Box>
+
+      <CartDrawer
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+      />
     </Box>
   );
 }

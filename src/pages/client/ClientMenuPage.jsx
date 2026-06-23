@@ -14,6 +14,8 @@ import { RestaurantMenu } from '@mui/icons-material';
 import { getDishes }                          from '../../api/dishes';
 import { getFavorites, addFavorite, removeFavorite } from '../../api/favorites';
 import { useNotification }                     from '../../contexts/NotificationContext';
+import { useCart }                             from '../../contexts/CartContext';
+import { useAuth }                             from '../../contexts/AuthContext';
 import DishDetailModal                         from '../../components/menu/DishDetailModal';
 import GuestGuard                              from '../../components/common/GuestGuard';
 
@@ -24,7 +26,9 @@ const capitalize = (s) => s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
 const DEFAULT_PRICE_RANGE = [0, 5000];
 
 export default function ClientMenuPage() {
-  const notify = useNotification();
+  const notify     = useNotification();
+  const { addToCart }  = useCart();
+  const { isGuest }    = useAuth();
 
   const [dishes,      setDishes]      = useState([]);
   const [favoriteIds, setFavoriteIds] = useState(new Set());
@@ -258,7 +262,10 @@ export default function ClientMenuPage() {
         onClose={() => setModalOpen(false)}
         isFavorite={selectedDish ? favoriteIds.has(selectedDish.id) : false}
         onToggleFavorite={handleToggleFavorite}
-        onAddToCart={null}
+        onAddToCart={isGuest ? null : (dish) => {
+          addToCart(dish);
+          notify.success(`«${dish.name}» добавлено в корзину`);
+        }}
       />
     </Box>
   );

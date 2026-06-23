@@ -5,6 +5,7 @@ import { ThemeProvider, CssBaseline } from '@mui/material';
 
 import { NotificationProvider } from './contexts/NotificationContext';
 import { AuthProvider }         from './contexts/AuthContext';
+import { CartProvider }         from './contexts/CartContext';
 import { theme }                from './theme/theme';
 import App                      from './App';
 
@@ -15,7 +16,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
         <CssBaseline />
         <NotificationProvider>
           <AuthProvider>
-            <App />
+            <CartProvider>
+              <App />
+            </CartProvider>
           </AuthProvider>
         </NotificationProvider>
       </ThemeProvider>
