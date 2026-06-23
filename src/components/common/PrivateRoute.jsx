@@ -3,40 +3,25 @@ import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function PrivateRoute({ allowedRoles = [] }) {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isGuest } = useAuth();
 
   if (loading) {
-    return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <Spinner />;
   }
 
   if (!user) {
     return <Navigate to="/login" replace />;
   }
 
+  if (isGuest) {
+    if (allowedRoles.length === 0 || allowedRoles.includes('guest')) {
+      return <Outlet />;
+    }
+    return <Navigate to="/access-denied" replace />;
+  }
+
   if (!profile) {
-    return (
-      <Box
-        sx={{
-          minHeight: '100vh',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <CircularProgress />
-      </Box>
-    );
+    return <Spinner />;
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(profile.role)) {
@@ -44,4 +29,12 @@ export default function PrivateRoute({ allowedRoles = [] }) {
   }
 
   return <Outlet />;
+}
+
+function Spinner() {
+  return (
+    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <CircularProgress />
+    </Box>
+  );
 }

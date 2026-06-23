@@ -3,8 +3,9 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Box, Paper, Typography, TextField, Button,
   InputAdornment, IconButton, CircularProgress, Link,
+  Divider,
 } from '@mui/material';
-import { Visibility, VisibilityOff, Restaurant } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Restaurant, PersonOutlined } from '@mui/icons-material';
 import { useAuth }         from '../contexts/AuthContext';
 import { useNotification } from '../contexts/NotificationContext';
 import { getProfileById }  from '../api/profiles';
@@ -17,14 +18,15 @@ const ROLE_HOME = {
 };
 
 export default function LoginPage() {
-  const { signIn } = useAuth();
+  const { signIn, signInAsGuest } = useAuth();
   const navigate   = useNavigate();
   const notify     = useNotification();
 
   const [formData, setFormData]         = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors]   = useState({});
-  const [loading, setLoading]           = useState(false);
+  const [loading,      setLoading]       = useState(false);
+  const [guestLoading, setGuestLoading]  = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,7 +54,7 @@ export default function LoginPage() {
     try {
       const { session } = await signIn(formData);
 
-      let homeRoute = '/dashboard'; 
+      let homeRoute = '/dashboard';
       try {
         const profile = await getProfileById(session.user.id);
         homeRoute = ROLE_HOME[profile?.role] ?? '/dashboard';
@@ -67,6 +69,18 @@ export default function LoginPage() {
       notify.error(message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGuestLogin = async () => {
+    setGuestLoading(true);
+    try {
+      await signInAsGuest();
+      navigate('/menu');
+    } catch (err) {
+      notify.error('Не удалось войти как гость: ' + err.message);
+    } finally {
+      setGuestLoading(false);
     }
   };
 
@@ -141,11 +155,29 @@ export default function LoginPage() {
             variant="contained"
             fullWidth
             size="large"
-            disabled={loading}
+            disabled={loading || guestLoading}
           >
             {loading ? <CircularProgress size={24} color="inherit" /> : 'Войти'}
           </Button>
         </Box>
+
+        <Divider sx={{ my: 2 }}>или</Divider>
+
+        <Button
+          variant="outlined"
+          fullWidth
+          size="large"
+          startIcon={guestLoading ? <CircularProgress size={20} color="inherit" /> : <PersonOutlined />}
+          onClick={handleGuestLogin}
+          disabled={loading || guestLoading}
+          color="inherit"
+        >
+          {guestLoading ? 'Входим...' : 'Войти как гость'}
+        </Button>
+
+        <Typography variant="caption" color="text.disabled" sx={{ display: 'block', textAlign: 'center', mt: 1 }}>
+          Только просмотр меню, без сохранения данных
+        </Typography>
 
         <Typography variant="body2" sx={{ mt: 2, textAlign: 'center' }}>
           Нет аккаунта?{' '}

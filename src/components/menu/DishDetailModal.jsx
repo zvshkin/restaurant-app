@@ -7,6 +7,7 @@ import {
   Close, Favorite, FavoriteBorder,
   AccessTime, RestaurantMenu, ShoppingCartOutlined,
 } from '@mui/icons-material';
+import GuestGuard from '../common/GuestGuard';
 
 export default function DishDetailModal({ dish, open, onClose, isFavorite, onToggleFavorite, onAddToCart }) {
   if (!dish) return null;
@@ -115,28 +116,32 @@ export default function DishDetailModal({ dish, open, onClose, isFavorite, onTog
 
         <Divider sx={{ mb: 2 }} />
         <Stack direction="row" spacing={1.5}>
-          <Button
-            variant="outlined"
-            startIcon={isFavorite ? <Favorite color="error" /> : <FavoriteBorder />}
-            onClick={() => onToggleFavorite(dish)}
-            sx={{ flex: 1 }}
-          >
-            {isFavorite ? 'В избранном' : 'В избранное'}
-          </Button>
+          <GuestGuard message="Чтобы сохранять избранные блюда, войдите в аккаунт.">
+            <Button
+              variant="outlined"
+              startIcon={isFavorite ? <Favorite color="error" /> : <FavoriteBorder />}
+              onClick={() => onToggleFavorite(dish)}
+              sx={{ flex: 1 }}
+            >
+              {isFavorite ? 'В избранном' : 'В избранное'}
+            </Button>
+          </GuestGuard>
 
-          <Tooltip title={onAddToCart ? '' : 'Корзина появится в следующей версии'}>
-            <span style={{ flex: 2 }}>
-              <Button
-                variant="contained"
-                startIcon={<ShoppingCartOutlined />}
-                onClick={() => onAddToCart?.(dish)}
-                disabled={!onAddToCart}
-                fullWidth
-              >
-                В корзину
-              </Button>
-            </span>
-          </Tooltip>
+          <GuestGuard message="Чтобы делать заказы, войдите в аккаунт.">
+            <Tooltip title={onAddToCart ? '' : 'Корзина появится в следующей версии'}>
+              <span style={{ flex: 2 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<ShoppingCartOutlined />}
+                  onClick={() => onAddToCart?.(dish)}
+                  disabled={!onAddToCart}
+                  fullWidth
+                >
+                  В корзину
+                </Button>
+              </span>
+            </Tooltip>
+          </GuestGuard>
         </Stack>
       </DialogContent>
     </Dialog>

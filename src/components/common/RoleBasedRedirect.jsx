@@ -7,12 +7,13 @@ const ROLE_HOME = {
   admin:    '/dashboard',
   chef:     '/dashboard',
   client:   '/menu',
+  guest:    '/menu',
 };
 
 export default function RoleBasedRedirect() {
-  const { user, profile, loading } = useAuth();
+  const { user, profile, loading, isGuest } = useAuth();
 
-  if (loading || (user && !profile)) {
+  if (loading || (user && !isGuest && !profile)) {
     return (
       <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <CircularProgress />
@@ -22,6 +23,7 @@ export default function RoleBasedRedirect() {
 
   if (!user) return <Navigate to="/login" replace />;
 
-  const home = ROLE_HOME[profile?.role] ?? '/dashboard';
+  const role = isGuest ? 'guest' : profile?.role;
+  const home = ROLE_HOME[role] ?? '/dashboard';
   return <Navigate to={home} replace />;
 }

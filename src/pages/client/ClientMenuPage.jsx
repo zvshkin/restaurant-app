@@ -15,6 +15,7 @@ import { getDishes }                          from '../../api/dishes';
 import { getFavorites, addFavorite, removeFavorite } from '../../api/favorites';
 import { useNotification }                     from '../../contexts/NotificationContext';
 import DishDetailModal                         from '../../components/menu/DishDetailModal';
+import GuestGuard                              from '../../components/common/GuestGuard';
 
 const CATEGORIES = ['завтрак', 'салаты', 'супы', 'основное', 'десерты', 'напитки'];
 const TAG_OPTIONS = ['острое', 'вегетарианское', 'без глютена', 'детское', 'фирменное', 'постное', 'новинка'];
@@ -192,7 +193,7 @@ export default function ClientMenuPage() {
                     placeholder={selectedTags.length === 0 ? 'Любые' : ''} 
                     />
                 )}
-                />
+              />
               <Box sx={{ flex: 1, minWidth: 220, px: 1 }}>
                 <Typography variant="caption" color="text.secondary">
                   Цена: {priceRange[0]} ₽ — {priceRange[1]} ₽
@@ -274,26 +275,28 @@ function ClientDishCard({ dish, isFavorite, onToggleFavorite, onClick }) {
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
 
-      <Tooltip title={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}>
-        <IconButton
-          onClick={handleFavoriteClick}
-          size="small"
-          sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            bgcolor: 'rgba(255,255,255,0.85)',
-            backdropFilter: 'blur(4px)',
-            '&:hover': { bgcolor: 'rgba(255,255,255,1)' },
-            zIndex: 1,
-          }}
-        >
-          {isFavorite
-            ? <Favorite fontSize="small" sx={{ color: 'error.main' }} />
-            : <FavoriteBorder fontSize="small" />
-          }
-        </IconButton>
-      </Tooltip>
+      <GuestGuard message="Чтобы сохранять избранные блюда, войдите в аккаунт.">
+        <Tooltip title={isFavorite ? 'Убрать из избранного' : 'Добавить в избранное'}>
+          <IconButton
+            onClick={handleFavoriteClick}
+            size="small"
+            sx={{
+              position: 'absolute',
+              top: 8,
+              right: 8,
+              bgcolor: 'rgba(255,255,255,0.85)',
+              backdropFilter: 'blur(4px)',
+              '&:hover': { bgcolor: 'rgba(255,255,255,1)' },
+              zIndex: 1,
+            }}
+          >
+            {isFavorite
+              ? <Favorite fontSize="small" sx={{ color: 'error.main' }} />
+              : <FavoriteBorder fontSize="small" />
+            }
+          </IconButton>
+        </Tooltip>
+      </GuestGuard>
 
       <CardActionArea onClick={onClick} sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', alignItems: 'stretch' }}>
         {dish.photo_url ? (

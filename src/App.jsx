@@ -40,7 +40,7 @@ export default function App() {
         </Route>
       </Route>
 
-      <Route element={<PrivateRoute allowedRoles={['client', 'director', 'admin', 'chef']} />}>
+      <Route element={<PrivateRoute allowedRoles={['guest', 'client', 'director', 'admin', 'chef']} />}>
         <Route element={<AppLayout />}>
           <Route path="/menu" element={<ClientMenuPage />} />
         </Route>

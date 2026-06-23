@@ -8,7 +8,9 @@ export function AuthProvider({ children }) {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchProfile = useCallback(async (userId) => {
+  const fetchProfile = useCallback(async (userId, isAnonymous = false) => {
+    if (isAnonymous) return null;
+
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
@@ -16,6 +18,7 @@ export function AuthProvider({ children }) {
       .single();
 
     if (error) {
+      if (error.code === 'PGRST116') return null;
       console.error('Ошибка загрузки профиля:', error.message);
       return null;
     }
@@ -26,7 +29,7 @@ export function AuthProvider({ children }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
-        const prof = await fetchProfile(session.user.id);
+        const prof = await fetchProfile(session.user.id, session.user.is_anonymous);
         setProfile(prof);
       }
       setLoading(false);
@@ -36,7 +39,7 @@ export function AuthProvider({ children }) {
       async (event, session) => {
         if (session?.user) {
           setUser(session.user);
-          const prof = await fetchProfile(session.user.id);
+          const prof = await fetchProfile(session.user.id, session.user.is_anonymous);
           setProfile(prof);
         } else {
           setUser(null);
@@ -50,10 +53,7 @@ export function AuthProvider({ children }) {
   }, [fetchProfile]);
 
   const signIn = async ({ email, password }) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
     return data;
   };
@@ -62,9 +62,7 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: {
-        data: { full_name: fullName },
-      },
+      options: { data: { full_name: fullName } },
     });
     if (error) throw error;
     return data;
@@ -75,29 +73,45 @@ export function AuthProvider({ children }) {
     if (error) throw error;
   };
 
+  const signInAsGuest = async () => {
+    const { data: { session: existingSession } } = await supabase.auth.getSession();
+    if (existingSession?.user?.is_anonymous) {
+      return { session: existingSession, user: existingSession.user };
+    }
+
+    const { data, error } = await supabase.auth.signInAnonymously();
+    if (error) throw error;
+    return data;
+  };
+
   const refreshProfile = useCallback(async () => {
-    if (!user) return null;
-    const prof = await fetchProfile(user.id);
+    if (!user || user.is_anonymous) return null;
+    const prof = await fetchProfile(user.id, false);
     setProfile(prof);
     return prof;
   }, [user, fetchProfile]);
 
+  const isGuest    = user?.is_anonymous === true;
   const isDirector = profile?.role === 'director';
-  const isAdmin     = profile?.role === 'admin';
-  const isChef      = profile?.role === 'chef';
-  const role        = profile?.role ?? null;
+  const isAdmin    = profile?.role === 'admin';
+  const isChef     = profile?.role === 'chef';
+  const isClient   = profile?.role === 'client';
+  const role       = isGuest ? 'guest' : (profile?.role ?? null);
 
   const value = {
     user,
     profile,
     loading,
+    isGuest,
     isDirector,
     isAdmin,
     isChef,
+    isClient,
     role,
     signIn,
     signUp,
     signOut,
+    signInAsGuest,
     refreshProfile,
   };
 
