@@ -136,110 +136,43 @@ SQL-скрипт:
 ## 📁 Структура проекта
 
 ```
-restaurant-app
-├─ .dockerignore
-├─ ai-agent
-│  ├─ package-lock.json
-│  ├─ package.json
-│  ├─ src
-│  │  ├─ agent
-│  │  │  ├─ chat.ts
-│  │  │  ├─ config.ts
-│  │  │  ├─ createHostedAgent.ts
-│  │  │  ├─ createRestaurantAgent.ts
-│  │  │  └─ init-agent.ts
-│  │  ├─ api
-│  │  │  └─ httpServer.ts
-│  │  ├─ db
-│  │  │  ├─ menu.ts
-│  │  │  ├─ orders.ts
-│  │  │  └─ supabase.ts
-│  │  ├─ mcp
-│  │  │  ├─ createServer.ts
-│  │  │  ├─ http.ts
-│  │  │  └─ index.ts
-│  │  └─ types
-│  │     └─ database.ts
-│  └─ tsconfig.json
-├─ docker-compose.yml
-├─ Dockerfile
-├─ docs
-│  └─ database.sql
-├─ eslint.config.js
-├─ index.html
-├─ package-lock.json
-├─ package.json
-├─ public
-│  ├─ favicon.svg
-│  └─ icons.svg
-├─ README.md
-├─ src
-│  ├─ api
-│  │  ├─ aiAgent.js
-│  │  ├─ avatars.js
-│  │  ├─ dishes.js
-│  │  ├─ favorites.js
-│  │  ├─ orders.js
-│  │  ├─ products.js
-│  │  ├─ profiles.js
-│  │  ├─ supabaseClient.js
-│  │  ├─ supplies.js
-│  │  └─ supplyRequests.js
-│  ├─ App.css
-│  ├─ App.jsx
-│  ├─ assets
-│  ├─ components
-│  │  ├─ client
-│  │  │  ├─ AiAssistantDrawer.jsx
-│  │  │  └─ CartDrawer.jsx
-│  │  ├─ common
-│  │  │  ├─ DeleteConfirmDialog.jsx
-│  │  │  ├─ GuestGuard.jsx
-│  │  │  ├─ LoadingScreen.jsx
-│  │  │  ├─ PrivateRoute.jsx
-│  │  │  └─ RoleBasedRedirect.jsx
-│  │  ├─ inventory
-│  │  │  ├─ AddSupplyModal.jsx
-│  │  │  ├─ ApproveSupplyRequestModal.jsx
-│  │  │  ├─ ProductFormModal.jsx
-│  │  │  └─ ProductsTable.jsx
-│  │  ├─ layout
-│  │  │  ├─ AppLayout.jsx
-│  │  │  ├─ Sidebar.jsx
-│  │  │  └─ TopBar.jsx
-│  │  ├─ menu
-│  │  │  ├─ DishCard.jsx
-│  │  │  ├─ DishDetailModal.jsx
-│  │  │  ├─ DishFormModal.jsx
-│  │  │  └─ DishList.jsx
-│  │  └─ profile
-│  │     ├─ AvatarUploadDialog.jsx
-│  │     └─ PhoneInput.jsx
-│  ├─ contexts
-│  │  ├─ AuthContext.jsx
-│  │  ├─ CartContext.jsx
-│  │  └─ NotificationContext.jsx
-│  ├─ hooks
-│  │  └─ useAuth.js
-│  ├─ index.css
-│  ├─ main.jsx
-│  ├─ pages
-│  │  ├─ AccessDeniedPage.jsx
-│  │  ├─ admin
-│  │  │  └─ UsersPage.jsx
-│  │  ├─ client
-│  │  │  └─ ClientMenuPage.jsx
-│  │  ├─ DashboardPage.jsx
-│  │  ├─ InventoryPage.jsx
-│  │  ├─ LoginPage.jsx
-│  │  ├─ MenuPage.jsx
-│  │  ├─ ProfilePage.jsx
-│  │  ├─ RegisterPage.jsx
-│  │  ├─ SupplyHistoryPage.jsx
-│  │  └─ SupplyRequestsPage.jsx
-│  └─ theme
-│     └─ theme.js
-└─ vite.config.js
+restaurant-app/
+│
+├── src/                          # React-приложение
+│   ├── api/
+│   │   ├── supabaseClient.js     # Supabase-клиент (anon key)
+│   │   ├── dishes.js, orders.js, favorites.js, …
+│   │   └── aiAgent.js            # Клиент API ИИ-агента
+│   ├── components/
+│   │   ├── client/
+│   │   │   ├── CartDrawer.jsx
+│   │   │   └── AiAssistantDrawer.jsx   # Чат с ИИ
+│   │   ├── common/               # PrivateRoute, GuestGuard, …
+│   │   ├── layout/               # Sidebar, TopBar, AppLayout
+│   │   ├── menu/                 # DishCard, DishFormModal, …
+│   │   └── inventory/
+│   ├── contexts/
+│   │   ├── AuthContext.jsx       # useAuth(): user, role, isGuest
+│   │   ├── CartContext.jsx
+│   │   └── NotificationContext.jsx
+│   ├── pages/
+│   │   ├── client/ClientMenuPage.jsx
+│   │   ├── admin/, dashboard/, …
+│   └── App.jsx
+│
+├── ai-agent/                     # MCP-сервер + OpenAI Agent + HTTP API
+│   ├── src/
+│   │   ├── mcp/                  # MCP Resource + Tool
+│   │   ├── db/                   # Supabase + PostgreSQL (транзакции)
+│   │   ├── agent/                # Конфиг агента, init, chat CLI
+│   │   └── api/httpServer.ts     # REST API для React (порт 3002)
+│   ├── docs/schema.sql
+│   └── .env.example
+│
+├── docs/database.sql
+├── .env.example                  # Ключи фронтенда
+├── docker-compose.yml
+└── vite.config.js                # Прокси /api/agent → :3002
 ```
 
 ---
