@@ -275,7 +275,7 @@ export default function SupplyRequestsPage() {
                         <TableCell>{r.requester?.full_name ?? r.requester?.email}</TableCell>
                         <TableCell>{formatDateTime(r.created_at)}</TableCell>
                         <TableCell align="center">
-                          <Stack direction="row" spacing={0.5} justifyContent="center">
+                          <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'center' }}>
                             <Tooltip title="Одобрить">
                               <IconButton size="small" color="success" onClick={() => openApprove(r)}>
                                 <CheckCircleOutlined fontSize="small" />
