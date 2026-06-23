@@ -1,0 +1,33 @@
+{
+  "name": "restaurant-ai-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "MCP-сервер и OpenAI-агент для ресторана",
+  "scripts": {
+    "build": "tsc",
+    "mcp": "tsx src/mcp/index.ts",
+    "mcp:http": "tsx src/mcp/http.ts",
+    "api": "tsx src/api/httpServer.ts",
+    "agent:init": "tsx src/agent/init-agent.ts",
+    "agent:chat": "tsx src/agent/chat.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@openai/agents": "^0.11.8",
+    "@supabase/supabase-js": "^2.108.1",
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "pg": "^8.22.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/node": "^24.10.1",
+    "@types/pg": "^8.15.6",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
+  }
+}

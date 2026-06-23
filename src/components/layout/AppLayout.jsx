@@ -4,6 +4,7 @@ import { Box } from '@mui/material';
 import Sidebar    from './Sidebar';
 import TopBar     from './TopBar';
 import CartDrawer from '../client/CartDrawer';
+import AiAssistantDrawer from '../client/AiAssistantDrawer';
 
 const DRAWER_WIDTH = 260;
 
@@ -36,6 +37,8 @@ export default function AppLayout() {
         open={cartOpen}
         onClose={() => setCartOpen(false)}
       />
+
+      <AiAssistantDrawer />
     </Box>
   );
 }
